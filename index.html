@@ -71,7 +71,7 @@
       transform: translateZ(0);
     }
 
-    /* paper grain + light blotches (more paper, less UI) */
+    /* paper grain + light blotches */
     .envelope::before{
       content:"";
       position:absolute;
@@ -189,19 +189,17 @@
       100%{ transform: translateX(0); }
     }
 
-    /* ====== OVERLAY: poster + button LIVE ON TOP OF envelope ====== */
+    /* ====== OVERLAY: poster + button ON TOP of envelope ====== */
     .overlay{
       position:absolute;
       left:50%;
       top: 8%;
       transform: translateX(-50%);
       width: min(640px, 90vw);
-      z-index: 40;                 /* above envelope */
+      z-index: 40;
       display:grid;
       justify-items:center;
       gap: 14px;
-
-      /* hidden until opened */
       opacity: 0;
       pointer-events:none;
     }
@@ -211,7 +209,6 @@
       pointer-events:auto;
     }
 
-    /* Poster */
     .poster{
       width:100%;
       border-radius: 16px;
@@ -220,7 +217,6 @@
       border: 1px solid rgba(255,255,255,.12);
       box-shadow: var(--paperShadow);
       position:relative;
-
       opacity: 0;
       transform: translateY(240px);
       will-change: transform, opacity;
@@ -232,23 +228,8 @@
       display:block;
       position:relative;
       z-index:2;
-      transition: opacity 650ms ease;
     }
 
-    /* MP4 behind image */
-    .poster video{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity 650ms ease;
-      z-index:1;
-      pointer-events:none;
-    }
-
-    /* Pull up then settle down ON TOP of envelope */
     .opened .poster{
       opacity: 1;
       animation: pullUpThenSettle 980ms cubic-bezier(.18,.86,.18,1) forwards;
@@ -260,11 +241,6 @@
       100% { transform: translateY(0px); }
     }
 
-    /* Confirmation state: reveal MP4 by fading video in and image slightly out */
-    .confirmed .poster video{ opacity: .36; }
-    .confirmed .poster img{ opacity: .82; } /* so the MP4 is actually visible */
-
-    /* Button ALWAYS under poster (in same overlay stack) */
     .btn{
       font-family: var(--font);
       font-size: 20px;
@@ -291,11 +267,58 @@
       animation:none;
     }
 
+    /* ====== VIDEO POP-UP OVERLAY (NEW) ====== */
+    .video-overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      background: rgba(0,0,0,.72);
+      z-index: 9999;
+      padding: 18px;
+    }
+    .video-overlay.show{
+      display:grid;
+    }
+
+    .video-box{
+      width:min(720px, 95vw);
+      aspect-ratio: 16 / 9;
+      border-radius: 16px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 30px 100px rgba(0,0,0,.65);
+      background:#000;
+      position:relative;
+    }
+
+    .video-box video{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+    }
+
+    .close{
+      position:absolute;
+      top: 10px;
+      right: 10px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.55);
+      color: rgba(255,255,255,.92);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-family: var(--font);
+      font-size: 18px;
+      line-height: 1;
+    }
+    .close:hover{ background: rgba(0,0,0,.70); }
+
     @media (prefers-reduced-motion: reduce){
       .seal{ animation:none; }
       .flap{ transition:none; }
       .opened .poster{ animation:none; opacity:1; transform: translateY(0); }
-      .poster img, .poster video{ transition:none; }
     }
   </style>
 </head>
@@ -303,7 +326,6 @@
 <body>
   <main class="stage" id="stack">
     <div class="envelope-wrap">
-      <!-- Envelope -->
       <div class="envelope" id="env">
         <div class="flap"></div>
         <div class="fold-left"></div>
@@ -312,16 +334,12 @@
         <div class="seal" id="seal" aria-label="Otvori kuvertu"></div>
       </div>
 
-      <!-- Overlay sits ON TOP of envelope: poster then button -->
       <div class="overlay" id="overlay">
         <div class="poster" id="poster">
-          <video id="partyVideo" muted loop playsinline preload="none">
-            <source src="https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/ee/92/hczB9S73.mp4" type="video/mp4">
-          </video>
           <img id="inviteImg" src="bunker-night-3.png" alt="Pozivnica" />
         </div>
 
-        <button class="btn" id="rsvpBtn">naravno da dolazim, nisam luzer</button>
+        <button class="btn" id="rsvpBtn">NARAVNO DA DOLAZIM, NISAM LUZER</button>
       </div>
     </div>
 
@@ -330,21 +348,33 @@
     </audio>
   </main>
 
+  <!-- NEW: video pops up over everything -->
+  <div class="video-overlay" id="videoOverlay" aria-hidden="true">
+    <div class="video-box">
+      <button class="close" id="closeVideo" aria-label="Zatvori">×</button>
+      <video id="popupVideo" muted loop playsinline preload="none">
+        <source src="https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/ee/92/hczB9S73.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
   <script>
     const stack = document.getElementById("stack");
     const env = document.getElementById("env");
     const seal = document.getElementById("seal");
     const rsvpBtn = document.getElementById("rsvpBtn");
-    const video = document.getElementById("partyVideo");
     const sealSound = document.getElementById("sealSound");
     const inviteImg = document.getElementById("inviteImg");
+
+    const videoOverlay = document.getElementById("videoOverlay");
+    const popupVideo = document.getElementById("popupVideo");
+    const closeVideo = document.getElementById("closeVideo");
 
     let opened = false;
     let confirmed = false;
 
-    // Debug helper: if your PNG isn't uploaded correctly, you'll know immediately.
     inviteImg.addEventListener("error", () => {
-      console.warn("Image not found: bunker-night-3.png (check filename + that it’s uploaded next to index.html)");
+      console.warn("Image not found: bunker-night-3.png (check filename + upload next to index.html)");
     });
 
     function openEnvelope(){
@@ -362,18 +392,38 @@
 
     seal.addEventListener("click", openEnvelope);
 
+    function showVideo(){
+      videoOverlay.classList.add("show");
+      videoOverlay.setAttribute("aria-hidden", "false");
+      popupVideo.play().catch(() => {});
+    }
+
+    function hideVideo(){
+      videoOverlay.classList.remove("show");
+      videoOverlay.setAttribute("aria-hidden", "true");
+      try { popupVideo.pause(); popupVideo.currentTime = 0; } catch(e) {}
+    }
+
     rsvpBtn.addEventListener("click", () => {
       if(!opened || confirmed) return;
       confirmed = true;
 
-      stack.classList.add("confirmed");
+      showVideo();
 
-      // play + show MP4
-      video.play().catch(() => {});
-
-      // subtle “it worked” feedback without adding any text
       rsvpBtn.classList.add("done");
       rsvpBtn.disabled = true;
+    });
+
+    closeVideo.addEventListener("click", hideVideo);
+
+    // click outside the video box closes it
+    videoOverlay.addEventListener("click", (e) => {
+      if (e.target === videoOverlay) hideVideo();
+    });
+
+    // esc closes it
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && videoOverlay.classList.contains("show")) hideVideo();
     });
   </script>
 </body>
