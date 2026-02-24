@@ -1,60 +1,56 @@
 <!doctype html>
 <html lang="hr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Pozivnica</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pozivnica</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Walter+Turncoat&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Walter+Turncoat&display=swap" rel="stylesheet">
 
-<style>
-:root{
-  --bg:#07070b;
+  <style>
+    :root{
+      --bg:#07070b;
 
-  --env-1:#b31222;
-  --env-2:#8f0f1a;
-  --env-3:#6b0b13;
+      /* flatter paper reds */
+      --env-1:#b31222;
+      --env-2:#8f0f1a;
+      --env-3:#6b0b13;
 
-  --wax-1:#cf1328;
-  --wax-2:#7f0a14;
+      /* wax reds */
+      --wax-1:#cf1328;
+      --wax-2:#7f0a14;
 
-  --white: rgba(255,255,255,.92);
-  --font:"Walter Turncoat", system-ui;
+      --white: rgba(255,255,255,.92);
+      --font: "Walter Turncoat", system-ui, -apple-system, Segoe UI, Roboto, Arial;
 
-  --envShadow:0 22px 60px rgba(0,0,0,.72);
-  --paperShadow:0 26px 90px rgba(0,0,0,.78);
-  --btnShadow:0 18px 44px rgba(0,0,0,.45);
+      --envShadow: 0 22px 60px rgba(0,0,0,.72);
+      --paperShadow: 0 26px 90px rgba(0,0,0,.78);
+      --btnShadow: 0 18px 44px rgba(0,0,0,.45);
+    }
 
-  --vh:1vh;
-}
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(900px 650px at 50% 18%, rgba(177,18,34,.10), transparent 62%),
+        radial-gradient(800px 520px at 20% 85%, rgba(255,180,0,.04), transparent 70%),
+        var(--bg);
+      color: var(--white);
+      font-family: var(--font);
+      overflow-x:hidden;
+    }
 
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  min-height:100svh;
-  min-height:calc(var(--vh)*100);
-  display:grid;
-  place-items:center;
-  background:
-    radial-gradient(900px 650px at 50% 18%, rgba(177,18,34,.10), transparent 62%),
-    radial-gradient(800px 520px at 20% 85%, rgba(255,180,0,.04), transparent 70%),
-    var(--bg);
-  color:var(--white);
-  font-family:var(--font);
-}
-
-.stage{
-  width:min(980px,94vw);
-  min-height:100svh;
-  min-height:calc(var(--vh)*100);
-  display:grid;
-  align-content:center;
-  justify-items:center;
-  padding:18px 0;
-}
+    .stage{
+      width:min(980px, 94vw);
+      display:grid;
+      justify-items:center;
+      padding: 30px 0 56px;
+    }
 
     /* ====== ENVELOPE AREA (layering root) ====== */
     .envelope-wrap{
@@ -193,155 +189,192 @@ body{
       100%{ transform: translateX(0); }
     }
 
-/* ================= POSTER ================= */
+    /* ====== OVERLAY: poster + button LIVE ON TOP OF envelope ====== */
+    .overlay{
+      position:absolute;
+      left:50%;
+      top: 8%;
+      transform: translateX(-50%);
+      width: min(640px, 90vw);
+      z-index: 40;                 /* above envelope */
+      display:grid;
+      justify-items:center;
+      gap: 14px;
 
-.overlay{
-  position:absolute;
-  left:50%;
-  top:8%;
-  transform:translateX(-50%);
-  width:min(640px,90vw);
-  display:grid;
-  justify-items:center;
-  gap:14px;
-  opacity:0;
-}
+      /* hidden until opened */
+      opacity: 0;
+      pointer-events:none;
+    }
 
-.opened .overlay{
-  opacity:1;
-}
+    .opened .overlay{
+      opacity: 1;
+      pointer-events:auto;
+    }
 
-.poster{
-  width:100%;
-  border-radius:16px;
-  overflow:hidden;
-  background:#000;
-  box-shadow:var(--paperShadow);
-  position:relative;
-  opacity:0;
-  transform:translateY(240px);
-}
+    /* Poster */
+    .poster{
+      width:100%;
+      border-radius: 16px;
+      overflow:hidden;
+      background:#000;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--paperShadow);
+      position:relative;
 
-.opened .poster{
-  opacity:1;
-  animation:pullUp .9s cubic-bezier(.18,.86,.18,1) forwards;
-}
+      opacity: 0;
+      transform: translateY(240px);
+      will-change: transform, opacity;
+    }
 
-@keyframes pullUp{
-  0%{transform:translateY(240px)}
-  60%{transform:translateY(-34px)}
-  100%{transform:translateY(0)}
-}
+    .poster img{
+      width:100%;
+      height:auto;
+      display:block;
+      position:relative;
+      z-index:2;
+      transition: opacity 650ms ease;
+    }
 
-.poster img{
-  width:100%;
-  display:block;
-  position:relative;
-  z-index:2;
-  transition:opacity .6s ease;
-}
+    /* MP4 behind image */
+    .poster video{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 650ms ease;
+      z-index:1;
+      pointer-events:none;
+    }
 
-.poster video{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  opacity:0;
-  z-index:1;
-  transition:opacity .6s ease;
-}
+    /* Pull up then settle down ON TOP of envelope */
+    .opened .poster{
+      opacity: 1;
+      animation: pullUpThenSettle 980ms cubic-bezier(.18,.86,.18,1) forwards;
+    }
+    @keyframes pullUpThenSettle{
+      0%   { transform: translateY(240px); opacity:0; }
+      18%  { opacity:1; }
+      62%  { transform: translateY(-34px); }
+      100% { transform: translateY(0px); }
+    }
 
-/* ⭐ stronger visible video */
-.confirmed .poster video{ opacity:.82; }
-.confirmed .poster img{ opacity:.5; }
+    /* Confirmation state: reveal MP4 by fading video in and image slightly out */
+    .confirmed .poster video{ opacity: .78; }
+    .confirmed .poster img{ opacity: .82; } /* so the MP4 is actually visible */
 
-/* ================= BUTTON ================= */
+    /* Button ALWAYS under poster (in same overlay stack) */
+    .btn{
+      font-family: var(--font);
+      font-size: 20px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(0,0,0,.82);
+      color: #fff;
+      cursor:pointer;
+      box-shadow: var(--btnShadow);
+      z-index: 45;
+    }
+    .btn:hover{ background: rgba(0,0,0,.94); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.done{ opacity:.85; cursor:default; }
 
-.btn{
-  font-family:var(--font);
-  font-size:14px;
-  padding:8px 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(0,0,0,.82);
-  color:#fff;
-  cursor:pointer;
-  box-shadow:var(--btnShadow);
-  width:fit-content;
-  max-width:50%;
-  text-align:center;
-}
+    /* Open state: flap opens, seal disappears */
+    .opened .flap{ transform: rotateX(165deg); }
+    .opened .seal{
+      opacity: 0;
+      pointer-events:none;
+      transform: translate(-50%, -50%) scale(.92);
+      transition: opacity 220ms ease, transform 220ms ease;
+      animation:none;
+    }
 
-.btn.done{
-  opacity:.85;
-  cursor:default;
-}
-
-</style>
+    @media (prefers-reduced-motion: reduce){
+      .seal{ animation:none; }
+      .flap{ transition:none; }
+      .opened .poster{ animation:none; opacity:1; transform: translateY(0); }
+      .poster img, .poster video{ transition:none; }
+    }
+  </style>
 </head>
 
 <body>
-
-<main class="stage" id="stack">
-  <div class="envelope-wrap">
-
-    <div class="envelope" id="env">
-      <div class="flap"></div>
-      <div class="seal" id="seal"></div>
-    </div>
-
-    <div class="overlay">
-      <div class="poster">
-        <video id="partyVideo" muted loop playsinline preload="none">
-          <source src="https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/ee/92/hczB9S73.mp4" type="video/mp4">
-        </video>
-
-        <img src="bunker-night-3.png" alt="Pozivnica">
+  <main class="stage" id="stack">
+    <div class="envelope-wrap">
+      <!-- Envelope -->
+      <div class="envelope" id="env">
+        <div class="flap"></div>
+        <div class="fold-left"></div>
+        <div class="fold-right"></div>
+        <div class="fold-bottom"></div>
+        <div class="seal" id="seal" aria-label="Otvori kuvertu"></div>
       </div>
 
-      <button class="btn" id="rsvpBtn">
-        NARAVNO DA DOLAZIM, NISAM LUZER
-      </button>
+      <!-- Overlay sits ON TOP of envelope: poster then button -->
+      <div class="overlay" id="overlay">
+        <div class="poster" id="poster">
+          <video id="partyVideo" muted loop playsinline preload="none">
+            <source src="https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/ee/92/hczB9S73.mp4" type="video/mp4">
+          </video>
+          <img id="inviteImg" src="bunker-night-3.png" alt="Pozivnica" />
+        </div>
+
+        <button class="btn" id="rsvpBtn">naravno da dolazim, nisam luzer</button>
+      </div>
     </div>
 
-  </div>
-</main>
+    <audio id="sealSound" preload="auto">
+      <source src="https://cdn.freesound.org/previews/256/256113_3263906-lq.mp3" type="audio/mpeg">
+    </audio>
+  </main>
 
-<script>
-/* mobile viewport fix */
-function setVh(){
-  document.documentElement.style.setProperty('--vh',(window.innerHeight*0.01)+'px');
-}
-setVh();
-window.addEventListener('resize',setVh);
+  <script>
+    const stack = document.getElementById("stack");
+    const env = document.getElementById("env");
+    const seal = document.getElementById("seal");
+    const rsvpBtn = document.getElementById("rsvpBtn");
+    const video = document.getElementById("partyVideo");
+    const sealSound = document.getElementById("sealSound");
+    const inviteImg = document.getElementById("inviteImg");
 
-const stack=document.getElementById("stack");
-const env=document.getElementById("env");
-const seal=document.getElementById("seal");
-const rsvpBtn=document.getElementById("rsvpBtn");
-const video=document.getElementById("partyVideo");
+    let opened = false;
+    let confirmed = false;
 
-let opened=false;
-let confirmed=false;
+    // Debug helper: if your PNG isn't uploaded correctly, you'll know immediately.
+    inviteImg.addEventListener("error", () => {
+      console.warn("Image not found: bunker-night-3.png (check filename + that it’s uploaded next to index.html)");
+    });
 
-seal.addEventListener("click",()=>{
-  if(opened) return;
-  opened=true;
-  stack.classList.add("opened");
-});
+    function openEnvelope(){
+      if(opened) return;
+      opened = true;
 
-rsvpBtn.addEventListener("click",()=>{
-  if(!opened||confirmed) return;
-  confirmed=true;
+      seal.classList.add("press");
+      try { sealSound.currentTime = 0; sealSound.play(); } catch(e) {}
+      setTimeout(() => env.classList.add("crack"), 80);
 
-  stack.classList.add("confirmed");
-  video.play().catch(()=>{});
+      setTimeout(() => {
+        stack.classList.add("opened");
+      }, 160);
+    }
 
-  rsvpBtn.classList.add("done");
-  rsvpBtn.disabled=true;
-});
-</script>
+    seal.addEventListener("click", openEnvelope);
 
+    rsvpBtn.addEventListener("click", () => {
+      if(!opened || confirmed) return;
+      confirmed = true;
+
+      stack.classList.add("confirmed");
+
+      // play + show MP4
+      video.play().catch(() => {});
+
+      // subtle “it worked” feedback without adding any text
+      rsvpBtn.classList.add("done");
+      rsvpBtn.disabled = true;
+    });
+  </script>
 </body>
 </html>
